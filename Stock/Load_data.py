@@ -34,17 +34,15 @@ def Web_scrap():
 
 
 # Read the CSV file into a pandas DataFrame
-data = pd.read_csv("Data/HK0388/past_data/price.csv")
-Time_label = data.columns[0]
 
-
-def check_nan_indices(data):
+def check_nan_indices(data,Time_label):
     nan_columns = data.columns[data.isnull().any()]
-    
+    dates = data[Time_label].values
     if len(nan_columns) > 0:
         for column in nan_columns:
             nan_indices = data[column].index[data[column].isnull()]
-            print(f"NaN values found in column '{column}' at indices:", nan_indices)
+            for nan_index in nan_indices:
+                print(f"NaN values found in column '{column}' at date:", dates[nan_index])
             
 def Mean_imputation(data):
     nan_columns = data.columns[data.isnull().any()]
@@ -54,17 +52,32 @@ def Mean_imputation(data):
         data[column].fillna(mean_value, inplace=True)
     
     print("Mean imputation done.")
+    print("Nah value smoothed")
 
 
-Mean_imputation(data)
-check_nan_indices(data)
+def Load_Data(FlieLocation,ExtractLabel,MeanImputation=True):
+    data = pd.read_csv(FlieLocation)
+    Time_label = data.columns[0]
+    T_data = data[Time_label].values
+    
+    check_nan_indices(data,Time_label)
+    if MeanImputation:        
+        Mean_imputation(data)
+    
+    TimeSerise = data[ExtractLabel].values
+    
+    print("returning time serise of ", ExtractLabel)
+    
+    return [TimeSerise,T_data]
+        
+    
 
 #Basic analysis
-def Basic_plot():
+def Basic_plot(Data):
     print("It might take some time...")
-    x_axis_label = data.columns[0]
+    x_axis_label = Data.columns[0]
     # Plot the rest of the columns against the first column
-    for column in data.columns[1:]:
+    for column in Data.columns[1:]:
         # Create a new plot for each column
         plt.figure()
         plt.plot(data[x_axis_label], data[column])
@@ -77,5 +90,5 @@ def Basic_plot():
         plt.xticks(rotation=45)
         plt.show()
     return
-
+    
 
